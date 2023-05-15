@@ -16,9 +16,9 @@ Assignments using deep-learning frameworks are solved only with Pytorch.
 - [Q4](): Convolutional Networks. (_Done_)
 - [Q5](): PyTorch / TensorFlow on CIFAR-10. (_Done_)
 
-### Assignment 3:
-- [Q1](): Image Captioning with Vanilla RNNs. (_Done_)
-- [Q2](): Image Captioning with LSTMs. (_Done_)
-- [Q3](): Network Visualization: Saliency maps, Class Visualization, and Fooling Images. (_Done_)
-- [Q4](): Style Transfer. (_Done_)
-- [Q5](): Generative Adversarial Networks. (_Done_)
+### Assignment 3 (not solved):
+- [Q1](): Image Captioning with Vanilla RNNs.
+- [Q2](): Image Captioning with LSTMs. 
+- [Q3](): Network Visualization: Saliency maps, Class Visualization, and Fooling Images. 
+- [Q4](): Style Transfer. 
+- [Q5](): Generative Adversarial Networks. 
