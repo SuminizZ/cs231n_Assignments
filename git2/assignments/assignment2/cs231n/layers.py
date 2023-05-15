@@ -676,8 +676,6 @@ def spatial_groupnorm_backward(dout, cache):
     dbeta = dout.sum(axis=(0, 2, 3), keepdims=True)
 
     dz = dout*gamma
-    # print(dz.shape, x_norm.shape, (dz*x_norm).shape, (dz*x_norm).reshape(N*G, -1).shape, dz*(-1/D).reshape(N*G, -1).shape)
-    # print((np.sum((dz*x_norm).reshape(N*G, -1), axis=1, keepdims=True)).shape)
     dx = (np.sum((dz*x_norm).reshape(N*G, -1), axis=1, keepdims=True)*(-1/D)*x_norm.reshape(N*G, -1) \
          + np.sum(dz.reshape(N*G, -1), axis=1, keepdims=True)*(-1/D) + dz.reshape(N*G, -1))/x_std
     dx = dx.reshape(N, C, H, W)
