@@ -1,7 +1,7 @@
 # CS231n 2020: Convolutional Neural Networks for Visual Recognition - Assignment Solutions
 
 This repository contains my solutions to the assignments of the [CS231n](http://cs231n.stanford.edu/) course offered by Stanford University (Spring 2020).
-Assignments using deep-learning frameworks are solved with only Pytorch.
+Assignments using deep-learning frameworks are solved only with Pytorch.
 
 ### Assignment 1:
 - [Q1](): k-Nearest Neighbor classifier. (_Done_)
