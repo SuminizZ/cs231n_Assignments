@@ -438,7 +438,8 @@ def conv_forward_naive(x, w, b, conv_param):
     conv_h = int((H + pad*2 - HH)/stride + 1)
     conv_w = int((W + pad*2 - WW)/stride + 1)
     out = np.zeros((N, F, conv_h, conv_w))
-
+    
+    # 3 for loops
     # for f in range(F):
     #     for ch in range(conv_h):
     #         sidx_h = ch*stride
