@@ -14,7 +14,7 @@ Assignments using deep-learning frameworks are solved only with Pytorch.
 - [Q2](https://github.com/SuminizZ/cs231n_Assignments/blob/main/git2/assignments/assignment2/BatchNormalization.ipynb): Batch Normalization. (_Done_)
 - [Q3](https://github.com/SuminizZ/cs231n_Assignments/blob/main/git2/assignments/assignment2/Dropout.ipynb): Dropout. (_Done_)
 - [Q4](https://github.com/SuminizZ/cs231n_Assignments/blob/main/git2/assignments/assignment2/ConvolutionalNetworks.ipynb): Convolutional Networks. (_Done_)
-- [Q5](): PyTorch / TensorFlow on CIFAR-10. ()
+- [Q5](): PyTorch / TensorFlow on CIFAR-10. (_Done_)
 
 ### Assignment 3 (not solved)
 - [Q1](): Image Captioning with Vanilla RNNs.
