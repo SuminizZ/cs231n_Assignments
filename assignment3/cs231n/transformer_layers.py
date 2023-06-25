@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 import math
+import numpy as np
+import time 
 
 """
 This file defines layer types that are commonly used for transformers.
@@ -25,28 +27,27 @@ class PositionalEncoding(nn.Module):
         super().__init__()
         self.dropout = nn.Dropout(p=dropout)
         assert embed_dim % 2 == 0
-        # Create an array with a "batch dimension" of 1 (which will broadcast
-        # across all examples in the batch).
         pe = torch.zeros(1, max_len, embed_dim)
-        ############################################################################
-        # TODO: Construct the positional encoding array as described in            #
-        # Transformer_Captioning.ipynb.  The goal is for each row to alternate     #
-        # sine and cosine, and have exponents of 0, 0, 2, 2, 4, 4, etc. up to      #
-        # embed_dim. Of course this exact specification is somewhat arbitrary, but #
-        # this is what the autograder is expecting. For reference, our solution is #
-        # less than 5 lines of code.                                               #
-        ############################################################################
-        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # with a for-loop
+        # for i in range(max_len):
+        #     for j in range(embed_dim//2):
+        #         pe[0, i, 2*j] = np.sin(i*(max_len**(-2*j/embed_dim)))
+        #         pe[0, i, 2*j+1] = np.cos(i*(max_len**(-2*j/embed_dim)))
+        # toc = time.time()
 
-        # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        ############################################################################
-        #                             END OF YOUR CODE                             #
-        ############################################################################
+        # w/o explicit for-loop : faster
+        p_seq = torch.arange(0, max_len).unsqueeze(1)
+        p_idx = 10000**(torch.arange(0, embed_dim//2)*(-2/embed_dim))
+        outer = p_seq*p_idx
 
-        # Make sure the positional encodings will be saved with the model
-        # parameters (mostly for completeness).
+        even_idx = torch.arange(0, embed_dim//2)*2
+        odd_idx = torch.arange(0, embed_dim//2)*2 + 1
+
+        pe[:, :, even_idx] = torch.sin(outer)
+        pe[:, :, odd_idx] = torch.cos(outer)
+        toc = time.time()
+
         self.register_buffer('pe', pe)
 
     def forward(self, x):
@@ -61,21 +62,8 @@ class PositionalEncoding(nn.Module):
          - output: the input sequence + positional encodings, of shape (N, S, D)
         """
         N, S, D = x.shape
-        # Create a placeholder, to be overwritten by your code below.
-        output = torch.empty((N, S, D))
-        ############################################################################
-        # TODO: Index into your array of positional encodings, and add the         #
-        # appropriate ones to the input sequence. Don't forget to apply dropout    #
-        # afterward. This should only take a few lines of code.                    #
-        ############################################################################
-        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        output = self.dropout(x + self.pe[0, :S, :])
 
-        pass
-
-        # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        ############################################################################
-        #                             END OF YOUR CODE                             #
-        ############################################################################
         return output
 
 
@@ -136,7 +124,7 @@ class MultiHeadAttention(nn.Module):
         Inputs:
         - query: Input data to be used as the query, of shape (N, S, E)
         - key: Input data to be used as the key, of shape (N, T, E)
-        - value: Input data to be used as the value, of shape (N, T, E)
+        - value: Input data to be used as sthe value, of shape (N, T, E)
         - attn_mask: Array of shape (S, T) where mask[i,j] == 0 indicates token
           i in the source should not influence token j in the target.
 
@@ -146,31 +134,26 @@ class MultiHeadAttention(nn.Module):
           and query.
         """
         N, S, E = query.shape
-        N, T, E = value.shape
-        # Create a placeholder, to be overwritten by your code below.
+        N, T, E = value.shape   # S = T in self-attention
         output = torch.empty((N, S, E))
-        ############################################################################
-        # TODO: Implement multiheaded attention using the equations given in       #
-        # Transformer_Captioning.ipynb.                                            #
-        # A few hints:                                                             #
-        #  1) You'll want to split your shape from (N, T, E) into (N, T, H, E/H),  #
-        #     where H is the number of heads.                                      #
-        #  2) The function torch.matmul allows you to do a batched matrix multiply.#
-        #     For example, you can do (N, H, T, E/H) by (N, H, E/H, T) to yield a  #
-        #     shape (N, H, T, T). For more examples, see                           #
-        #     https://pytorch.org/docs/stable/generated/torch.matmul.html          #
-        #  3) For applying attn_mask, think how the scores should be modified to   #
-        #     prevent a value from influencing output. Specifically, the PyTorch   #
-        #     function masked_fill may come in handy.                              #
-        ############################################################################
-        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        D = E//self.n_head
+        
+        query = self.query(query).reshape((N, S, self.n_head, D)).permute(0, 2, 1, 3)
+        key = self.key(key).reshape((N, T, self.n_head, D)).permute(0, 2, 3, 1)
+        value = self.value(value).reshape((N, T, self.n_head, D)).permute(0, 2, 1, 3)
 
-        pass
+        attention = torch.matmul(query, key)/math.sqrt(D)   # N, H, S, T
 
-        # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        ############################################################################
-        #                             END OF YOUR CODE                             #
-        ############################################################################
+        if attn_mask is not None:
+            attn_mask = F.pad(attn_mask, (S-T,T-S), 'constant', 0)
+            attention = attention.masked_fill(attn_mask == 0, -1e8)    # softmax 
+
+        attention_prob = self.attn_drop(F.softmax(attention, dim=-1))  
+
+        output = torch.matmul(attention_prob, value)
+        output = output.transpose(1,2).contiguous().view(N, S, E)
+        output = self.proj(output)
+        
         return output
 
 
